@@ -81,3 +81,40 @@ resource "aws_default_route_table" "main-rtb" {
         Name = "${var.env_prefix}-main-rtb"
     }
 }
+
+# Configure firewall rules for our ec2 instance (security groups)
+# SSH (port 22) and  nginx (port 8080) 
+resource "aws_security_group" "myapp-sg" {
+  name        = "myapp-sg"
+  vpc_id      = aws_vpc.myapp-vpc.id
+
+  # For incoming requests (inbound)
+  ingress {
+      description      = "SSH"
+      from_port        = 22
+      to_port          = 22
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"] # WHO IS ALLOWED TO SSH TO THIS Ec2
+  }
+
+    ingress {
+      description      = "nginx"
+      from_port        = 8080
+      to_port          = 8080
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"] # any ip adress can access 
+  }
+
+  # for outcoming (outbound)
+  egress {
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      prefix_list_ids = []
+  }
+
+  tags = {
+    Name = "${var.env_prefix}-myapp-sg"
+  }
+}
