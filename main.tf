@@ -82,10 +82,10 @@ resource "aws_default_route_table" "main-rtb" {
     }
 }
 
-# Configure firewall rules for our ec2 instance (security groups)
+# Configure firewall rules for our ec2 instance (default security groups)
 # SSH (port 22) and  nginx (port 8080) 
-resource "aws_security_group" "myapp-sg" {
-  name        = "myapp-sg"
+resource "aws_default_security_group" "myapp-default-sg" {
+#   name        = "myapp-default-sg"
   vpc_id      = aws_vpc.myapp-vpc.id
 
   # For incoming requests (inbound)
