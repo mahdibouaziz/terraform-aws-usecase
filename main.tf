@@ -18,6 +18,7 @@ variable "subnet_cidr_block" {}
 variable "avail_zone" {}
 variable "env_prefix" {}
 variable "instance_type" {}
+variable "public_key_location" {}
 
 # Create a vpc
 resource "aws_vpc" "myapp-vpc" {
@@ -134,6 +135,12 @@ output "aws_ami_id" {
   value = data.aws_ami.latest-amazon-linux-image.id
 }
 
+# Create a key pair for this instance
+resource "aws_key_pair" "ssh-key" {
+  key_name   = "myapp-key"
+  public_key = file(var.public_key_location)
+}
+
 # Create the EC2 instance
 resource "aws_instance" "myapp-server" {
   #required
@@ -147,9 +154,14 @@ resource "aws_instance" "myapp-server" {
 
   associate_public_ip_address = true
 
-  key_name = "mahdi-key"
+  key_name = aws_key_pair.ssh-key.key_name
 
   tags = {
     Name = "${var.env_prefix}-myapp-ec2"
   }
+}
+
+# To get the public ip of the ec2
+output "ec2_public_ip" {
+  value = aws_instance.myapp-server.public_ip
 }
