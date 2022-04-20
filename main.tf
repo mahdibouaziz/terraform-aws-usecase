@@ -163,13 +163,7 @@ resource "aws_instance" "myapp-server" {
   # Execute commands on EC2 server on the time of the creation
   # this is a multiline script
   #Note: this will only be executed once on the initial run
-  user_data = <<EOF
-                    #!/bin/bash
-                    sudo yum update -y && sudo yum install -y docker
-                    sudo systemctl start docker
-                    sudo usermod -aG docker ec2-user
-                    docker run -p 8080:80 nginx
-               EOF
+  user_data = file("entry-script.sh")
 
 }
 
