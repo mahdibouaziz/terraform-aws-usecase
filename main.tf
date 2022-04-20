@@ -14,12 +14,10 @@ provider "aws" {
 
 # Create our variables
 variable "vpc_cidr_block" {}
-
 variable "subnet_cidr_block" {}
-
 variable "avail_zone" {}
-
 variable "env_prefix" {}
+variable "instance_type" {}
 
 # Create a vpc
 resource "aws_vpc" "myapp-vpc" {
@@ -116,5 +114,42 @@ resource "aws_default_security_group" "myapp-default-sg" {
 
   tags = {
     Name = "${var.env_prefix}-myapp-sg"
+  }
+}
+
+
+# Get the AMI dynamically with filter
+data "aws_ami" "latest-amazon-linux-image" {
+  most_recent = true
+  owners = ["137112412989"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-kernel-5.10-hvm-*-x86_64-gp2"]
+  }
+}
+
+# To verify the selectrion of the right ami
+output "aws_ami_id" {
+  value = data.aws_ami.latest-amazon-linux-image.id
+}
+
+# Create the EC2 instance
+resource "aws_instance" "myapp-server" {
+  #required
+  ami           = data.aws_ami.latest-amazon-linux-image.id
+  instance_type = var.instance_type
+
+  #optional
+  subnet_id = aws_subnet.myapp-subnet-1.id
+  vpc_security_group_ids = [ aws_default_security_group.myapp-default-sg.id ]
+  availability_zone = var.avail_zone
+
+  associate_public_ip_address = true
+
+  key_name = "mahdi-key"
+
+  tags = {
+    Name = "${var.env_prefix}-myapp-ec2"
   }
 }
