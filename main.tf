@@ -6,57 +6,13 @@ resource "aws_vpc" "myapp-vpc" {
   }
 }
 
-# Create a subnet for this vpc
-resource "aws_subnet" "myapp-subnet-1" {
-  vpc_id     = aws_vpc.myapp-vpc.id
-  cidr_block = var.subnet_cidr_block
-  availability_zone = var.avail_zone
-  tags = {
-    Name = "${var.env_prefix}-subnet-1"
-  }
-}
-
-# Create an internet gateway to assign it to the routetable 
-resource "aws_internet_gateway" "myapp-igw" {
+module "myapp-subnet" {
+  source = "./modules/subnet"
   vpc_id = aws_vpc.myapp-vpc.id
-
-  tags = {
-     Name = "${var.env_prefix}-igw"
-  }
-}
-
-# # Create a new route table with 2 rules (for local and internet )
-# resource "aws_route_table" "myapp-route-table" {
-#     vpc_id = aws_vpc.myapp-vpc.id
-#     route {
-#         cidr_block = "0.0.0.0/0"
-#         gateway_id = aws_internet_gateway.myapp-igw.id
-#     }
-
-#     tags = {
-#         Name = "${var.env_prefix}-rtb"
-#     }
-# }
-
-
-# # Associate the subnet to the route table created
-# resource "aws_route_table_association" "a" {
-#   subnet_id      = aws_subnet.myapp-subnet-1.id
-#   route_table_id = aws_route_table.myapp-route-table.id
-# }
-
-# Associate the default route table (main) and added it a new route
-resource "aws_default_route_table" "main-rtb" {
-    default_route_table_id = aws_vpc.myapp-vpc.default_route_table_id
-
-    route {
-        cidr_block = "0.0.0.0/0"
-        gateway_id = aws_internet_gateway.myapp-igw.id
-    }
-
-    tags = {
-        Name = "${var.env_prefix}-main-rtb"
-    }
+  default_route_table_id = aws_vpc.myapp-vpc.default_route_table_id
+  subnet_cidr_block= var.subnet_cidr_block
+  avail_zone= var.avail_zone
+  env_prefix= var.env_prefix
 }
 
 # Configure firewall rules for our ec2 instance (default security groups)
@@ -122,7 +78,8 @@ resource "aws_instance" "myapp-server" {
   instance_type = var.instance_type
 
   #optional
-  subnet_id = aws_subnet.myapp-subnet-1.id
+  # to import the value from the module
+  subnet_id = module.myapp-subnet.subnet.id
   vpc_security_group_ids = [ aws_default_security_group.myapp-default-sg.id ]
   availability_zone = var.avail_zone
 
