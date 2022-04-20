@@ -19,6 +19,7 @@ variable "avail_zone" {}
 variable "env_prefix" {}
 variable "instance_type" {}
 variable "public_key_location" {}
+variable "private_key_location" {}
 
 # Create a vpc
 resource "aws_vpc" "myapp-vpc" {
@@ -164,6 +165,34 @@ resource "aws_instance" "myapp-server" {
   # this is a multiline script
   #Note: this will only be executed once on the initial run
   user_data = file("entry-script.sh")
+
+  #####    Provisioner is not recomanded by the terraform team       #####
+  # # Prepare the connection
+  # connection {
+  #   type     = "ssh"
+  #   host     = self.public_ip
+  #   user     = "ec2-user"
+  #   private_key = file(var.private_key_location)
+  # }
+
+  # # Copy the file from local machine to the remote
+  # provisioner "file" {
+  #   source = "entry-script.sh"
+  #   destination = "/home/ec2-user/entry-script.sh"
+  # }
+
+  # # Execute commands remotly on the server (if you specify a file it must exists in the server)
+  # provisioner "remote-exec" {
+  #   # inline = [
+  #   #   "mkdir testdir"
+  #   # ]
+  #   script = file("entry-script.sh") #this script must exists in the remote machine
+  # }
+
+  # # execute commands locally (on my local machine) after a resource is created
+  # provisioner "local-exec" {
+  #     command = "echo ${self.public_ip}"
+  # }
 
 }
 
