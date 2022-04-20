@@ -1,26 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
-    }
-  }
-}
-
-# Configure the AWS Provider
-provider "aws" {
-  region = "eu-west-3"
-}
-
-# Create our variables
-variable "vpc_cidr_block" {}
-variable "subnet_cidr_block" {}
-variable "avail_zone" {}
-variable "env_prefix" {}
-variable "instance_type" {}
-variable "public_key_location" {}
-variable "private_key_location" {}
-
 # Create a vpc
 resource "aws_vpc" "myapp-vpc" {
   cidr_block = var.vpc_cidr_block
@@ -131,10 +108,6 @@ data "aws_ami" "latest-amazon-linux-image" {
   }
 }
 
-# To verify the selectrion of the right ami
-output "aws_ami_id" {
-  value = data.aws_ami.latest-amazon-linux-image.id
-}
 
 # Create a key pair for this instance
 resource "aws_key_pair" "ssh-key" {
@@ -196,7 +169,3 @@ resource "aws_instance" "myapp-server" {
 
 }
 
-# To get the public ip of the ec2
-output "ec2_public_ip" {
-  value = aws_instance.myapp-server.public_ip
-}
